@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "wrangler:config": "node ./scripts/setup-wrangler.js",
+    "deploy": "wrangler deploy",
     "build": "astro build",
     "build:cf": "pnpm run wrangler:config && pnpm build && wrangler build",
     "preview": "astro preview",

@@ -1,0 +1,162 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/components/layout.astro";
+import { ProductImageGallery } from "@/components/react/product-image-gallery";
+import { ExpandableSection } from "@/components/react/expandable-section";
+import { AddToCart } from "@/components/react/add-to-cart";
+import type { ShippingData } from "@/lib/types";
+import PriceTag from "@/components/react/price-tag";
+import { StickyScrollButton } from "@/components/react/sticky-scroll-button";
+
+export async function getStaticPaths() {
+  const products = await getCollection("products");
+  const rawShippings = await getCollection("shippings");
+  const shippings = rawShippings?.reduce(
+    (acc, shipping) => {
+      acc[shipping.data.id] = shipping.data.data;
+      return acc;
+    },
+    {} as Record<string, ShippingData>,
+  );
+
+  return products.map((product) => {
+    const slug = decodeURIComponent(`${product.data.slug}`);
+    return {
+      params: {
+        slug,
+      },
+      props: {
+        product: product.data,
+        shippings: shippings,
+      },
+    };
+  });
+}
+
+const { product, shippings } = Astro.props;
+---
+
+<Layout
+  title={product.title}
+  description={product.excerpt}
+  image={product.images?.[0]?.url}
+>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6he lg:px-8 py-0 md:py-6">
+    {/* Product Section */}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
+      {/* Product Images */}
+      <ProductImageGallery
+        images={product.images}
+        productName={product.title}
+        client:idle
+      />
+
+      {/* Product Details */}
+      <div class="space-y-6">
+        {/* Product Info */}
+        <div>
+          <div class="flex flex-col md:flex-row justify-between">
+            <div>
+              <h1 class="text-2xl font-normal text-primary-foreground">
+                {product.title}
+              </h1>
+              <p class="text-muted-foreground mt-1">
+                {product.excerpt}
+              </p>
+            </div>
+            <PriceTag
+              regular_price={product.regular_price}
+              sale_price={product.sale_price}
+              className="text-xl font-medium text-gray-900 lg:flex-col lg:gap-1 whitespace-nowrap"
+            />
+          </div>
+        </div>
+
+        {/* Add to Cart Section */}
+        <AddToCart
+          product={product}
+          shippings={shippings}
+          apiEndpoint={import.meta.env.WORKER_API_URL}
+          id="add-to-cart"
+          client:idle
+        />
+
+        {/* Policy */}
+        <!-- <div
+          class="flex items-center space-x-2 text-sm text-gray-600"
+        >
+          <Check className="h-4 w-4 text-green-500" />
+          <span>30 Day Make It Right Policy</span>
+          <button class="text-blue-600 hover:underline"
+            >Learn more</button
+          >
+        </div> -->
+
+        {/* Expandable Sections */}
+        <div class="border-t border-gray-200 pt-6">
+          <ExpandableSection title="الوصف" defaultExpanded client:idle>
+            <p>{product.content}</p>
+          </ExpandableSection>
+
+          <ExpandableSection title="تفاصيل المنتج" client:idle>
+            <ul class="space-y-2">
+              {!!product?.height && <li>• الارتفاع: {product.height}</li>}
+              {!!product?.length && <li>• الطول: {product.length}</li>}
+              {product?.width && <li>• العرض: {product.width}</li>}
+              {product?.weight && <li>• الوزن: {product.weight}</li>}
+            </ul>
+          </ExpandableSection>
+
+          <ExpandableSection title="الشحن والإرجاع" client:idle>
+            <div class="space-y-2">
+              <p>
+                <strong>الشحن:</strong> هناك 3 أنواع متاحة: <strong
+                  >الشحن المجاني</strong
+                > وهو مجاني تماماً ولكنه غير شائع،
+                <strong>نقطة الاستلام</strong>
+                - كعميل يجب عليك اختيار نقطة استلام قريبة منك ثم الذهاب لاستلامها،
+                وأخيراً وليس آخراً <strong> التوصيل المنزلي</strong>
+                - سيتم توصيل المنتج/المنتجات إلى عتبة بابك.
+              </p>
+              <!-- <p>
+                                <strong>التبديل:</strong> تبديل
+                                مجاني للأحجام خلال 30 يوماً من
+                                الشراء.
+                            </p> -->
+            </div>
+          </ExpandableSection>
+        </div>
+
+        <div class="lg:hidden flex flex-col justify-center">
+          {
+            product.images.slice(1).map((image, index) => (
+              <img
+                src={image.url}
+                alt={`${product.title} صورة مصغرة ${index + 1}`}
+                width={80}
+                height={80}
+                class="w-full h-full object-contain bg-gray-50"
+              />
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <StickyScrollButton
+      targetId="add-to-cart"
+      buttonText="اشتري الآن"
+      client:idle
+    />
+
+    {/* Reviews Section */}
+    <!-- <div className="mb-12">
+              <ProductReviews productId={product.id} averageRating={4.5} totalReviews={24} reviews={reviews} />
+            </div> -->
+
+    {/* Related Products */}
+    <!-- <div>
+              <RelatedProducts products={relatedProducts} />
+            </div> -->
+  </main>
+</Layout>

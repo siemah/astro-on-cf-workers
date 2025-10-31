@@ -1,0 +1,150 @@
+---
+import "../assets/global.css";
+import "@fontsource-variable/cairo";
+import { getEntry } from "astro:content";
+import ExternalScripts from "./ExternalScripts.astro";
+import { handleAllSettledResults } from "@/lib/utils";
+import { Header } from "@/components/react/header";
+import Footer from "@/components/footer.astro";
+import { Toaster } from "sonner";
+
+export interface Props {
+    title: string;
+    description?: string|null;
+    image?: string;
+};
+
+const { title, description, image, }: Props = Astro.props;
+const response = await Promise.allSettled([
+    getEntry("storeDetails", "facebookPixelIds"),
+    getEntry("storeDetails", "tiktokPixelIds"),
+    getEntry("storeDetails", "googlePixelIds"),
+    getEntry("storeDetails", "storeName"),
+]);
+const [
+    facebookPixelIds,
+    tiktokPixelIds,
+    googleAnalyticIds,
+    rawStoreName,
+] = handleAllSettledResults(response);
+const pixels = {
+    facebookPixelIds: facebookPixelIds?.data?.data ?? [],
+    tiktokPixelIds: tiktokPixelIds?.data?.data ?? [],
+    googleAnalyticIds: googleAnalyticIds?.data?.data ?? [],
+};
+const storeName = typeof rawStoreName?.data?.data === "string"
+  ? rawStoreName.data.data
+  : "";
+const toastOptions = {
+  classNames: {
+    toast: "!rounded-none"
+  }
+};
+---
+
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="/favicon.svg"
+        />
+        <meta
+            name="viewport"
+            content="width=device-width"
+        />
+        <meta
+            name="generator"
+            content={"zzenz-onepage 1.0.0-beta"}
+        />
+
+        <meta property="og:title" content={`${title} - ${storeName}`} />
+        {!!description && (
+            <meta
+                name="description"
+                content={description ?? ""}
+            />
+            <meta
+                property="og:description"
+                content={description ?? ""}
+            />
+        )}
+        {!!image && <meta property="og:image" content={image} />}
+        <title>{`${title} - ${storeName}`}</title>
+        <style is:global>
+        @keyframes shake {
+            0%,
+            20% {
+                transform: translateX(0) rotate(0deg);
+            }
+            2.5%,
+            7.5%,
+            12.5%,
+            17.5% {
+                transform: translateX(-5px) rotate(0.5deg);
+            }
+            5%,
+            10%,
+            15% {
+                transform: translateX(3px) rotate(0deg);
+            }
+            20%,
+            100% {
+                transform: translateX(0) rotate(0deg);
+            }
+        }
+
+        .shake {
+            animation: shake 4s ease-in-out infinite;
+        }
+
+            .shake-once {
+                animation: shake 2s ease-in-out;
+            }
+
+            @keyframes pulse-border {
+                0%,
+                100% {
+                    border-color: var(--primary);
+                }
+                50% {
+                    border-color: var(--primary);
+                }
+            }
+
+            .pulse-border {
+                animation: pulse-border 1s ease-in-out
+                    infinite;
+            }
+
+            .no-shake {
+                animation: none;
+            }
+        </style>
+
+        <!-- @ts-ignore -->
+        <ExternalScripts
+          facebookPixelIds={pixels?.facebookPixelIds ?? []}
+          tiktokPixelIds={pixels?.tiktokPixelIds ?? []}
+          googleAnalyticIds={pixels?.googleAnalyticIds ?? []}
+        />
+
+    </head>
+    <body>
+        <div class="min-h-screen flex flex-col" dir="rtl">
+            <Header storeName={storeName} client:idle />
+            <div class="flex-1">
+                <slot />
+                </div>
+            <Footer storeName={storeName} />
+            <Toaster
+              position="bottom-center"
+              swipeDirections={["bottom"]}
+              toastOptions={toastOptions}
+              richColors
+              client:load
+            />
+        </div>
+    </body>
+</html>

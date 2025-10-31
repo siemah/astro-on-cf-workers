@@ -1,0 +1,14 @@
+---
+import Layout from "@/components/layout.astro";
+import TrackOrderPage from "@/components/pages/track-order";
+---
+
+<Layout
+  title="تتبع الطلب"
+  description="تتبع حالة طلبك وتفاصيل التوصيل"
+>
+  <TrackOrderPage
+    apiEndpoint={import.meta.env.WORKER_API_URL}
+    client:idle
+  />
+</Layout>

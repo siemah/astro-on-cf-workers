@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
+    "wrangler:config": "node ./scripts/setup-wrangler.js",
     "build": "astro build",
+    "build:cf": "pnpm run wrangler:config && wrangler build",
     "preview": "astro preview",
     "cf:perview": "pnpm run astro build && pnpm wrangler dev",
     "astro": "astro",

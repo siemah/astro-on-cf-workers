@@ -24,7 +24,7 @@ function generateWranglerConfig() {
     fs.writeFileSync(outputPath, JSON.stringify(config, null, 2) + '\n');
 
     console.log('✓ wrangler.jsonc created successfully');
-    console.log(`  Worker Name: ${dbName}`);
+    console.log(`  Worker Name: ${workerName}`);
   } catch (error) {
     console.error('Error generating wrangler config:', error);
     process.exit(1);

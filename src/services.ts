@@ -231,9 +231,6 @@ export async function getShipping() {
 export async function getDataFromStoreWorker(path: `shipping` | `products` | `store-details`) {
   try {
     const credentials = btoa(`${import.meta.env.WORKER_API_USER}:${import.meta.env.WORKER_API_PASSWORD}`);
-    console.log(".....................................");
-    console.log(import.meta.env);
-    console.log(".....................................");
     const response = await fetch(`${import.meta.env.WORKER_API_URL}/${path}`, {
       headers: {
         Authorization: `Basic ${credentials}`,
